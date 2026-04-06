@@ -8,7 +8,10 @@
   const eraserBtn = document.getElementById('eraserBtn');
   const clearBtn = document.getElementById('clearBtn');
   const roomInput = document.getElementById('roomInput');
+  const createBtn = document.getElementById('createBtn');
   const joinBtn = document.getElementById('joinBtn');
+  const leaveBtn = document.getElementById('leaveBtn');
+  const copyLinkBtn = document.getElementById('copyLinkBtn');
   const statusEl = document.getElementById('status');
   const usernameInput = document.getElementById('usernameInput');
   const avatarBtns = document.querySelectorAll('.avatar-btn');
@@ -22,6 +25,11 @@
   const voteYes = document.getElementById('voteYes');
   const voteNo = document.getElementById('voteNo');
   const voteTimer = document.getElementById('voteTimer');
+  const roomSetupGroup = document.getElementById('roomSetupGroup');
+  const roomInfoGroup = document.getElementById('roomInfoGroup');
+  const currentRoomName = document.getElementById('currentRoomName');
+  const drawingTools = document.getElementById('drawingTools');
+  const chatGroup = document.getElementById('chatGroup');
 
   let drawing = false;
   let current = {
@@ -179,7 +187,6 @@
   canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onPointerMove(e); }, { passive: false });
   window.addEventListener('touchend', onPointerUp, { passive: false });
 
-  // Users management
   function renderUsers() {
     usersList.innerHTML = '';
     users.forEach((user) => {
@@ -191,7 +198,6 @@
     usersGroup.style.display = users.size > 0 ? '' : 'none';
   }
 
-  // Chat
   function addChatMessage(username, message) {
     const el = document.createElement('div');
     el.className = 'chat-msg';
@@ -216,7 +222,6 @@
     return div.innerHTML;
   }
 
-  // Vote modal
   function showVoteModal(requester, timeout) {
     activeVote = { voteId: null, timeout };
     voteText.textContent = `${requester} wants to clear the canvas. Agree?`;
@@ -252,12 +257,21 @@
 
   function getWsUrl() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${window.location.host}/ws`;
+    return `${proto}//${window.location.host}`;
   }
 
-  function connectToRoom(roomId) {
-    room = roomId || 'default';
+  function setInRoom(inRoom) {
+    roomSetupGroup.style.display = inRoom ? 'none' : '';
+    roomInfoGroup.style.display = inRoom ? '' : 'none';
+    drawingTools.style.display = inRoom ? '' : 'none';
+    chatGroup.style.display = inRoom ? '' : 'none';
+  }
+
+  function enterRoom(roomId) {
+    room = roomId;
     myUsername = usernameInput.value.trim() || 'Anonymous';
+    currentRoomName.textContent = room;
+    setInRoom(true);
 
     const url = `${getWsUrl()}/?room=${encodeURIComponent(room)}&userId=${encodeURIComponent(myUserId)}&username=${encodeURIComponent(myUsername)}&avatar=${encodeURIComponent(myAvatar)}`;
 
@@ -274,7 +288,7 @@
     ws = new WebSocket(url);
 
     ws.onopen = () => {
-      statusEl.textContent = `Status: Connected (room=${room})`;
+      statusEl.textContent = `Status: Connected — Room: ${room}`;
     };
 
     ws.onclose = () => {
@@ -340,10 +354,51 @@
     };
   }
 
-  joinBtn.addEventListener('click', () => {
-    const id = roomInput.value.trim() || 'default';
-    connectToRoom(id);
+  function leaveRoom() {
+    if (ws) {
+      ws.onopen = null;
+      ws.onclose = null;
+      ws.onerror = null;
+      ws.onmessage = null;
+      ws.close();
+      ws = null;
+    }
+    room = null;
+    users.clear();
+    renderUsers();
+    setInRoom(false);
+    statusEl.textContent = 'Status: Offline — create or join a room';
+  }
+
+  createBtn.addEventListener('click', () => {
+    const id = roomInput.value.trim();
+    if (!id) {
+      roomInput.value = crypto.randomUUID().slice(0, 8);
+    }
+    enterRoom(roomInput.value.trim());
   });
 
-  connectToRoom('default');
+  joinBtn.addEventListener('click', () => {
+    const id = roomInput.value.trim();
+    if (!id) return;
+    enterRoom(id);
+  });
+
+  leaveBtn.addEventListener('click', leaveRoom);
+
+  copyLinkBtn.addEventListener('click', () => {
+    const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}`;
+    navigator.clipboard.writeText(url).then(() => {
+      copyLinkBtn.textContent = 'Copied!';
+      setTimeout(() => { copyLinkBtn.textContent = 'Copy Link'; }, 2000);
+    });
+  });
+
+  // Auto-join from URL param
+  const urlParams = new URLSearchParams(window.location.search);
+  const autoRoom = urlParams.get('room');
+  if (autoRoom) {
+    roomInput.value = autoRoom;
+    enterRoom(autoRoom);
+  }
 })();

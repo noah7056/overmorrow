@@ -17,35 +17,48 @@
             <button class="avatar-btn" data-avatar="🚀" title="Rocket">🚀</button>
           </div>
         </div>
-        <div class="tool-group">
-          <button id="penBtn" class="tool-btn active" title="Pen (Draw)">Pen</button>
-          <button id="eraserBtn" class="tool-btn" title="Eraser">Eraser</button>
-        </div>
-        <div class="tool-group">
-          <label for="colorPicker">Color</label>
-          <input type="color" id="colorPicker" value="#000000" />
-        </div>
-        <div class="tool-group">
-          <label for="sizeRange">Size</label>
-          <input type="range" id="sizeRange" min="1" max="60" value="5" />
-        </div>
-        <div class="tool-group">
-          <label for="opacityRange">Opacity</label>
-          <input type="range" id="opacityRange" min="0.1" max="1" step="0.05" value="1" />
-        </div>
-        <div class="tool-group">
-          <button id="clearBtn" class="tool-btn">Clear</button>
-        </div>
-        <div class="tool-group">
+        <div class="tool-group" id="roomSetupGroup">
           <label>Room</label>
-          <input type="text" id="roomInput" placeholder="Enter room id" />
-          <button id="joinBtn" class="tool-btn">Join</button>
+          <input type="text" id="roomInput" placeholder="Room name" maxlength="30" />
+          <div class="room-buttons">
+            <button id="createBtn" class="tool-btn primary">Create</button>
+            <button id="joinBtn" class="tool-btn">Join</button>
+          </div>
+        </div>
+        <div class="tool-group" id="roomInfoGroup" style="display:none;">
+          <label>Room</label>
+          <div class="room-info">
+            <span id="currentRoomName"></span>
+            <button id="copyLinkBtn" class="tool-btn" title="Copy room link">Copy Link</button>
+          </div>
+          <button id="leaveBtn" class="tool-btn">Leave Room</button>
+        </div>
+        <div id="drawingTools" style="display:none;">
+          <div class="tool-group">
+            <button id="penBtn" class="tool-btn active" title="Pen (Draw)">Pen</button>
+            <button id="eraserBtn" class="tool-btn" title="Eraser">Eraser</button>
+          </div>
+          <div class="tool-group">
+            <label for="colorPicker">Color</label>
+            <input type="color" id="colorPicker" value="#000000" />
+          </div>
+          <div class="tool-group">
+            <label for="sizeRange">Size</label>
+            <input type="range" id="sizeRange" min="1" max="60" value="5" />
+          </div>
+          <div class="tool-group">
+            <label for="opacityRange">Opacity</label>
+            <input type="range" id="opacityRange" min="0.1" max="1" step="0.05" value="1" />
+          </div>
+          <div class="tool-group">
+            <button id="clearBtn" class="tool-btn">Clear</button>
+          </div>
         </div>
         <div class="tool-group" id="usersGroup" style="display:none;">
           <label>Online</label>
           <div id="usersList" class="users-list"></div>
         </div>
-        <div class="tool-group chat-group">
+        <div class="tool-group chat-group" id="chatGroup" style="display:none;">
           <label>Chat</label>
           <div id="chatHistory" class="chat-history"></div>
           <div class="chat-input-row">
@@ -56,7 +69,7 @@
       </aside>
       <main class="stage" aria-label="Canvas stage">
         <canvas id="canvas" width="1200" height="800"></canvas>
-        <div id="status" class="status" aria-live="polite">Status: Offline</div>
+        <div id="status" class="status" aria-live="polite">Status: Offline — create or join a room</div>
         <div id="voteModal" class="vote-modal" style="display:none;">
           <div class="vote-modal-content">
             <p id="voteText">Clear canvas?</p>

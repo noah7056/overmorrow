@@ -12,12 +12,19 @@ export class RoomDO extends DurableObject {
 		this.clients.set(webSocket, userInfo);
 		webSocket.accept();
 
-		const joinMsg = JSON.stringify({ type: "user-joined", userId: userInfo.userId, username: userInfo.username, avatar: userInfo.avatar });
+		const joinMsg = JSON.stringify({
+			type: "user-joined",
+			userId: userInfo.userId,
+			username: userInfo.username,
+			avatar: userInfo.avatar,
+		});
 		for (const [ws] of this.clients) {
 			if (ws !== webSocket) ws.send(joinMsg);
 		}
 
-		const userList = Array.from(this.clients.values()).map(({ userId, username, avatar }) => ({ userId, username, avatar }));
+		const userList = Array.from(this.clients.values()).map(
+			({ userId, username, avatar }) => ({ userId, username, avatar })
+		);
 		webSocket.send(JSON.stringify({ type: "users", list: userList }));
 	}
 
@@ -151,7 +158,7 @@ export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
 
-		if (url.pathname === "/ws" && request.headers.get("Upgrade") === "websocket") {
+		if (request.headers.get("Upgrade") === "websocket") {
 			const room = url.searchParams.get("room") || "default";
 			const userId = url.searchParams.get("userId") || crypto.randomUUID();
 			const username = url.searchParams.get("username") || "Anonymous";
