@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
-import indexHtml from "../public/index.html";
-import stylesCss from "../public/styles.css";
-import mainJs from "../public/main.js";
+import indexHtml from "../public/index.html" with { type: "text" };
+import stylesCss from "../public/styles.css" with { type: "text" };
+import mainJs from "../public/main.js" with { type: "text" };
 
 const ASSETS = {
 	"/": { body: indexHtml, type: "text/html" },
