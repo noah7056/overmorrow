@@ -150,9 +150,9 @@ export class RoomDO extends DurableObject {
 export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
-		const room = url.searchParams.get("room") || "default";
 
-		if (request.headers.get("Upgrade") === "websocket") {
+		if (url.pathname === "/ws" && request.headers.get("Upgrade") === "websocket") {
+			const room = url.searchParams.get("room") || "default";
 			const userId = url.searchParams.get("userId") || crypto.randomUUID();
 			const username = url.searchParams.get("username") || "Anonymous";
 			const avatar = url.searchParams.get("avatar") || "🎨";
