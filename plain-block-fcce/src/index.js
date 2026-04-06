@@ -1,4 +1,14 @@
 import { DurableObject } from "cloudflare:workers";
+import indexHtml from "../public/index.html";
+import stylesCss from "../public/styles.css";
+import mainJs from "../public/main.js";
+
+const ASSETS = {
+	"/": { body: indexHtml, type: "text/html" },
+	"/index.html": { body: indexHtml, type: "text/html" },
+	"/styles.css": { body: stylesCss, type: "text/css" },
+	"/main.js": { body: mainJs, type: "application/javascript" },
+};
 
 export class RoomDO extends DurableObject {
 	constructor(ctx, env) {
@@ -11,7 +21,7 @@ export class RoomDO extends DurableObject {
 	async registerWebSocket(webSocket, userInfo) {
 		this.clients.set(webSocket, userInfo);
 		webSocket.accept();
-		console.log(`[DO] ${userInfo.username} joined room, total clients: ${this.clients.size}`);
+		console.log(`[DO] ${userInfo.username} joined, clients: ${this.clients.size}`);
 
 		const joinMsg = JSON.stringify({
 			type: "user-joined",
@@ -40,7 +50,7 @@ export class RoomDO extends DurableObject {
 			return;
 		}
 
-		console.log(`[DO] Received from ${sender.username}:`, data.type);
+		console.log(`[DO] ${data.type} from ${sender.username}, clients: ${this.clients.size}`);
 
 		switch (data.type) {
 			case "stroke": {
@@ -61,7 +71,7 @@ export class RoomDO extends DurableObject {
 						sent++;
 					}
 				}
-				console.log(`[DO] Broadcast stroke to ${sent} clients`);
+				console.log(`[DO] broadcast stroke to ${sent}`);
 				break;
 			}
 
@@ -149,6 +159,7 @@ export class RoomDO extends DurableObject {
 		const client = this.clients.get(webSocket);
 		if (client) {
 			this.clients.delete(webSocket);
+			console.log(`[DO] ${client.username} left, clients: ${this.clients.size}`);
 
 			const leaveMsg = JSON.stringify({
 				type: "user-left",
@@ -184,6 +195,13 @@ export default {
 			});
 		}
 
-		return env.ASSETS.fetch(request);
+		const asset = ASSETS[url.pathname];
+		if (asset) {
+			return new Response(asset.body, {
+				headers: { "Content-Type": asset.type },
+			});
+		}
+
+		return new Response("Not Found", { status: 404 });
 	},
 };
