@@ -10,6 +10,14 @@
     <div id="app" class="app">
       <aside id="toolbar" class="toolbar" aria-label="Drawing tools">
         <div class="tool-group">
+          <label>Profile</label>
+          <input type="text" id="usernameInput" placeholder="Your name" maxlength="20" />
+          <div class="avatar-picker">
+            <button class="avatar-btn active" data-avatar="🎨" title="Artist">🎨</button>
+            <button class="avatar-btn" data-avatar="🚀" title="Rocket">🚀</button>
+          </div>
+        </div>
+        <div class="tool-group">
           <button id="penBtn" class="tool-btn active" title="Pen (Draw)">Pen</button>
           <button id="eraserBtn" class="tool-btn" title="Eraser">Eraser</button>
         </div>
@@ -33,13 +41,34 @@
           <input type="text" id="roomInput" placeholder="Enter room id" />
           <button id="joinBtn" class="tool-btn">Join</button>
         </div>
+        <div class="tool-group" id="usersGroup" style="display:none;">
+          <label>Online</label>
+          <div id="usersList" class="users-list"></div>
+        </div>
+        <div class="tool-group chat-group">
+          <label>Chat</label>
+          <div id="chatHistory" class="chat-history"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200" />
+            <button id="chatSendBtn" class="tool-btn">→</button>
+          </div>
+        </div>
       </aside>
       <main class="stage" aria-label="Canvas stage">
         <canvas id="canvas" width="1200" height="800"></canvas>
         <div id="status" class="status" aria-live="polite">Status: Offline</div>
+        <div id="voteModal" class="vote-modal" style="display:none;">
+          <div class="vote-modal-content">
+            <p id="voteText">Clear canvas?</p>
+            <div class="vote-buttons">
+              <button id="voteYes" class="tool-btn">Yes</button>
+              <button id="voteNo" class="tool-btn">No</button>
+            </div>
+            <p id="voteTimer" class="vote-timer"></p>
+          </div>
+        </div>
       </main>
     </div>
-    <script src="https://unpkg.com/@supabase/supabase-js/dist/supabase.min.js"></script>
     <script src="main.js"></script>
   </body>
-  </html>
+</html>
