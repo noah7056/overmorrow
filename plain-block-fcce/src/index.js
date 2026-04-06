@@ -168,8 +168,6 @@ export default {
 			});
 		}
 
-		return new Response("Overmorrow Canvas WebSocket Server", {
-			headers: { "Content-Type": "text/plain" },
-		});
+		return env.ASSETS.fetch(request);
 	},
 };

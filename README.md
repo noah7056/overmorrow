@@ -1,37 +1,98 @@
-# Overmorrow Canvas (Base)
+# Overmorrow Canvas
 
-This repository contains a minimal base for a collaborative drawing web app.
+A real-time collaborative drawing app built with Cloudflare Workers + Durable Objects.
 
-- A left toolbar to control brush color, size, opacity, and eraser.
-- A drawing canvas on the right that reacts to mouse/touch input.
-- A skeleton for real-time collaboration (e.g., Supabase or WebSocket).
+## Features
 
-How to run locally:
-- Open index.html in a browser (no build step needed for this base).
-- The app is fully client-side. Real-time collaboration requires a backend
-  or a hosted service.
+- **Canvas drawing** with mouse/touch support
+- **Left toolbar**: pen, eraser, color picker, brush size, opacity
+- **Real-time collaboration**: see other users' strokes instantly
+- **Chat**: send messages that appear as speech bubbles
+- **Avatars & presence**: see who's online with emoji avatars
+- **Majority-vote canvas clear**: all users must agree before clearing
 
-Real-time collaboration options (recommended approaches):
-- Supabase Realtime:
-  - Create a Supabase project and enable Realtime for a strokes table.
-  - Use Supabase JS client in the frontend to subscribe to stroke events and
-    presence, broadcasting drawing data to all connected clients in a room.
-  - Add environment variables for SUPABASE_URL and SUPABASE_ANON_KEY and wire
-    a simple join flow to enter a room id.
-- WebSocket server:
-  - Spin up a small WebSocket backend that fans out drawing coordinates to
-    all clients in a room. This is simple to deploy with Node.js and ws or
-    socket.io.
+## Architecture
 
-Notes:
-- The current build is intentionally minimal to help you get a base canvas up
-  quickly. The real-time backend integration is scaffolded in main.js as a
-  placeholder; you can replace it with your preferred stack.
-- Avatars and online presence are planned features; the real-time backend can
-  expose a presence endpoint to broadcast online users and their avatars.
+```
+┌─────────────────────────────────────────────┐
+│           Cloudflare Worker                  │
+│                                             │
+│  ┌─────────────┐    ┌────────────────────┐  │
+│  │  Assets     │    │  Durable Objects   │  │
+│  │  (public/)  │    │  (RoomDO)          │  │
+│  │  index.html │◄──►│  - Broadcasts      │  │
+│  │  styles.css │    │  - Presence        │  │
+│  │  main.js    │    │  - Chat relay      │  │
+│  └─────────────┘    │  - Vote clearing   │  │
+│                     └────────────────────┘  │
+└─────────────────────────────────────────────┘
+```
 
-Next steps:
-- Wire a real-time backend (Supabase or WebSocket) and implement a simple
-  stroke message protocol: { room, id, color, size, opacity, eraser, path }.
-- Add presence indicators (avatars) in the UI.
-- Implement a small server to handle room creation, presence, and stroke events.
+Single URL serves both the frontend (static assets) and the WebSocket backend.
+
+## Setup
+
+1. Install Wrangler CLI:
+   ```bash
+   npm install -g wrangler
+   ```
+
+2. Login to Cloudflare:
+   ```bash
+   wrangler login
+   ```
+
+3. Navigate to the worker directory:
+   ```bash
+   cd plain-block-fcce
+   ```
+
+4. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+5. Deploy:
+   ```bash
+   npm run deploy
+   ```
+
+Your app will be live at `https://plain-block-fcce.<your-account>.workers.dev`
+
+## Local Development
+
+```bash
+cd plain-block-fcce
+npm run dev
+```
+
+Open `http://localhost:8787` in two browser tabs to test real-time collaboration.
+
+## Usage
+
+1. Open the app URL
+2. Set your name and pick an avatar (🎨 or 🚀)
+3. Enter a room name (or use "default") and click **Join**
+4. Share the same room URL with your friend
+5. Draw, chat, and collaborate in real-time!
+
+## Message Protocol
+
+```
+Client → Server:
+  { type: 'join', userId, username, avatar }
+  { type: 'stroke', points, color, size, opacity, eraser }
+  { type: 'chat', message }
+  { type: 'clear-request' }
+  { type: 'clear-vote', voteId, agree }
+
+Server → Client:
+  { type: 'users', list: [{ userId, username, avatar }] }
+  { type: 'user-joined', userId, username, avatar }
+  { type: 'user-left', userId, username }
+  { type: 'stroke', userId, points, color, size, opacity, eraser }
+  { type: 'chat', userId, username, avatar, message }
+  { type: 'clear-vote', voteId, requester, timeout }
+  { type: 'clear-result', voteId, agreed, yesCount, totalVoted }
+  { type: 'clear-canvas' }
+```

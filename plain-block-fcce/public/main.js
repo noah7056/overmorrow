@@ -250,24 +250,16 @@
     hideVoteModal();
   });
 
-  const WORKER_URL = '';
-
-  function getWorkerWsUrl() {
-    if (WORKER_URL) {
-      return WORKER_URL.replace(/^https?/, (m) => (m === 'https' ? 'wss' : 'ws'));
-    }
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'ws://localhost:8787';
-    }
-    return `wss://${window.location.hostname}`;
+  function getWsUrl() {
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${window.location.host}`;
   }
 
   function connectToRoom(roomId) {
     room = roomId || 'default';
     myUsername = usernameInput.value.trim() || 'Anonymous';
 
-    const wsUrl = getWorkerWsUrl();
-    const url = `${wsUrl}/?room=${encodeURIComponent(room)}&userId=${encodeURIComponent(myUserId)}&username=${encodeURIComponent(myUsername)}&avatar=${encodeURIComponent(myAvatar)}`;
+    const url = `${getWsUrl()}/?room=${encodeURIComponent(room)}&userId=${encodeURIComponent(myUserId)}&username=${encodeURIComponent(myUsername)}&avatar=${encodeURIComponent(myAvatar)}`;
 
     if (ws) {
       ws.onopen = null;
@@ -286,13 +278,13 @@
     };
 
     ws.onclose = () => {
-      statusEl.textContent = `Status: Disconnected (check WORKER_URL in main.js)`;
+      statusEl.textContent = 'Status: Disconnected';
       users.clear();
       renderUsers();
     };
 
     ws.onerror = () => {
-      statusEl.textContent = `Status: Connection error (set WORKER_URL in main.js to your worker URL)`;
+      statusEl.textContent = 'Status: Connection error';
     };
 
     ws.onmessage = (event) => {
