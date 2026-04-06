@@ -250,20 +250,34 @@
     hideVoteModal();
   });
 
-  // WebSocket connection
-  function getWorkerUrl() {
-    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'ws://localhost:8787'
-      : `wss://${window.location.hostname}`;
+  const WORKER_URL = '';
+
+  function getWorkerWsUrl() {
+    if (WORKER_URL) {
+      return WORKER_URL.replace(/^https?/, (m) => (m === 'https' ? 'wss' : 'ws'));
+    }
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'ws://localhost:8787';
+    }
+    return `wss://${window.location.hostname}`;
   }
 
   function connectToRoom(roomId) {
     room = roomId || 'default';
     myUsername = usernameInput.value.trim() || 'Anonymous';
 
-    const url = `${getWorkerUrl()}/?room=${encodeURIComponent(room)}&userId=${encodeURIComponent(myUserId)}&username=${encodeURIComponent(myUsername)}&avatar=${encodeURIComponent(myAvatar)}`;
+    const wsUrl = getWorkerWsUrl();
+    const url = `${wsUrl}/?room=${encodeURIComponent(room)}&userId=${encodeURIComponent(myUserId)}&username=${encodeURIComponent(myUsername)}&avatar=${encodeURIComponent(myAvatar)}`;
 
-    if (ws) ws.close();
+    if (ws) {
+      ws.onopen = null;
+      ws.onclose = null;
+      ws.onerror = null;
+      ws.onmessage = null;
+      ws.close();
+    }
+
+    statusEl.textContent = 'Status: Connecting...';
 
     ws = new WebSocket(url);
 
@@ -272,13 +286,13 @@
     };
 
     ws.onclose = () => {
-      statusEl.textContent = 'Status: Disconnected';
+      statusEl.textContent = `Status: Disconnected (check WORKER_URL in main.js)`;
       users.clear();
       renderUsers();
     };
 
     ws.onerror = () => {
-      statusEl.textContent = 'Status: Connection error';
+      statusEl.textContent = `Status: Connection error (set WORKER_URL in main.js to your worker URL)`;
     };
 
     ws.onmessage = (event) => {
