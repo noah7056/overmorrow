@@ -1,0 +1,24 @@
+:root {
+  --toolbar-w: 90px;
+  --bg: #0f111a;
+  --panel: #141824;
+  --text: #e8e8e8;
+  --accent: #4dabf7;
+}
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; margin: 0; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto; background: #111; color: #ddd; }
+.app { display: flex; height: 100%; width: 100%; }
+.toolbar { width: var(--toolbar-w); padding: 8px; background: #1b1f2b; border-right: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
+.tool-group { display: flex; flex-direction: column; gap: 6px; }
+.tool-group label { font-size: 12px; opacity: 0.8; }
+.tool-btn { padding: 8px 10px; border-radius: 6px; border: 1px solid #333; background: #2a3246; color: #fff; cursor: pointer; font-size: 12px; }
+.tool-btn.active { outline: 2px solid var(--accent); }
+.tool-btn:hover { background: #32405e; }
+.stage { flex: 1; display: flex; align-items: center; justify-content: center; background: #f6f6f6; position: relative; }
+#canvas { background: #fff; border: 1px solid #ccc; box-shadow: 0 0 0 1px rgba(0,0,0,.04) inset; touch-action: none; }
+.status { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.5); padding: 6px 12px; border-radius: 999px; color: #fff; font-size: 12px; }
+@media (max-width: 900px) {
+  :root { --toolbar-w: 72px; }
+  #canvas { width: 100%; height: auto; }
+}
