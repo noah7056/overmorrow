@@ -82,7 +82,9 @@
   });
 
   clearBtn.addEventListener('click', () => {
+    console.log('[Clear] Clicked, ws state:', ws ? ws.readyState : 'null');
     if (ws && ws.readyState === WebSocket.OPEN) {
+      console.log('[Clear] Sending clear-request');
       ws.send(JSON.stringify({ type: 'clear-request' }));
     } else {
       if (confirm('Clear canvas?')) {
@@ -159,14 +161,16 @@
     if (!drawing) return;
     endStroke();
     if (ws && ws.readyState === WebSocket.OPEN && currentStrokePoints.length > 0) {
-      ws.send(JSON.stringify({
+      const msg = JSON.stringify({
         type: 'stroke',
         points: currentStrokePoints,
         color: current.color,
         size: current.size,
         opacity: current.opacity,
         eraser: current.eraser,
-      }));
+      });
+      console.log('[WS] Sending stroke:', currentStrokePoints.length, 'points');
+      ws.send(msg);
     }
     currentStrokePoints = [];
   }
@@ -289,19 +293,23 @@
 
     ws.onopen = () => {
       statusEl.textContent = `Status: Connected — Room: ${room}`;
+      console.log('[WS] Connected');
     };
 
-    ws.onclose = () => {
+    ws.onclose = (e) => {
+      console.log('[WS] Closed', e.code, e.reason);
       statusEl.textContent = 'Status: Disconnected';
       users.clear();
       renderUsers();
     };
 
-    ws.onerror = () => {
+    ws.onerror = (e) => {
+      console.error('[WS] Error', e);
       statusEl.textContent = 'Status: Connection error';
     };
 
     ws.onmessage = (event) => {
+      console.log('[WS] Received:', event.data);
       let data;
       try {
         data = JSON.parse(event.data);

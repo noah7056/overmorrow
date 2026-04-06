@@ -11,6 +11,7 @@ export class RoomDO extends DurableObject {
 	async registerWebSocket(webSocket, userInfo) {
 		this.clients.set(webSocket, userInfo);
 		webSocket.accept();
+		console.log(`[DO] ${userInfo.username} joined room, total clients: ${this.clients.size}`);
 
 		const joinMsg = JSON.stringify({
 			type: "user-joined",
@@ -38,6 +39,8 @@ export class RoomDO extends DurableObject {
 		} catch {
 			return;
 		}
+
+		console.log(`[DO] Received from ${sender.username}:`, data.type);
 
 		switch (data.type) {
 			case "stroke": {
