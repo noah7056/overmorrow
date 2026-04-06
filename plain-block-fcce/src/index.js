@@ -54,9 +54,14 @@ export class RoomDO extends DurableObject {
 					opacity: data.opacity,
 					eraser: data.eraser,
 				});
+				let sent = 0;
 				for (const [ws] of this.clients) {
-					if (ws !== webSocket) ws.send(strokeMsg);
+					if (ws !== webSocket) {
+						ws.send(strokeMsg);
+						sent++;
+					}
 				}
+				console.log(`[DO] Broadcast stroke to ${sent} clients`);
 				break;
 			}
 
@@ -167,10 +172,11 @@ export default {
 			const username = url.searchParams.get("username") || "Anonymous";
 			const avatar = url.searchParams.get("avatar") || "🎨";
 
-			const stub = env.ROOM_DO.get(env.ROOM_DO.idFromName(room));
+			const id = env.ROOM_DO.idFromName(room);
+			const stub = env.ROOM_DO.get(id);
 			const pair = new WebSocketPair();
 
-			ctx.waitUntil(stub.registerWebSocket(pair[1], { userId, username, avatar }));
+			await stub.registerWebSocket(pair[1], { userId, username, avatar });
 
 			return new Response(null, {
 				status: 101,
